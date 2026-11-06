@@ -1,7 +1,10 @@
 # Changelog
 
+## 1.1.1
+- Header-Name auf `x-api-key` geändert (in claude.ai frei wählbarer Standardname).
+
 ## 1.1.0
-- Zweiter Schlüssel: Header `X-JWR-Key` (Option `client_key`) wird von der Brücke geprüft.
+- Zweiter Schlüssel: Header `x-api-key` (Option `client_key`) wird von der Brücke geprüft.
 - Webhook-ID jetzt 100 Zeichen (Buchstaben/Ziffern); bestehende IDs werden einmalig ersetzt.
 - Keine voreingestellte externe Adresse mehr.
 

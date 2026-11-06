@@ -6,8 +6,8 @@ configuration:
     name: Externe Home-Assistant-Adresse
     description: Öffentliche HTTPS-Adresse von Home Assistant ohne Port, z. B. https://meinhaus.duckdns.org. Wird nur für die Anzeige der Connector-URL im Log genutzt.
   client_key:
-    name: Header-Schlüssel (X-JWR-Key)
-    description: Geheimer zweiter Schlüssel. Muss in claude.ai beim Connector als Anfrage-Header „X-JWR-Key“ mit genau diesem Wert eingetragen sein. Mindestens 32, empfohlen 100 Zeichen. Wird nicht ins Log geschrieben.
+    name: Header-Schlüssel (x-api-key)
+    description: Geheimer zweiter Schlüssel. Muss in claude.ai beim Connector als Anfrage-Header „x-api-key“ mit genau diesem Wert eingetragen sein. Mindestens 32, empfohlen 100 Zeichen. Wird nicht ins Log geschrieben.
   max_read_mb:
     name: Max. Lesegröße (MB)
     description: Obergrenze für read_bytes pro Aufruf.

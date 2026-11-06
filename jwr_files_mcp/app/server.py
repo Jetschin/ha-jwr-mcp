@@ -36,7 +36,7 @@ from aiohttp import web
 sys.path.insert(0, os.path.dirname(__file__))
 import bootstrap  # noqa: E402
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 SERVER_NAME = "jwr-dateien"
 SUPPORTED_PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 DONE_DIR = "_erledigt"

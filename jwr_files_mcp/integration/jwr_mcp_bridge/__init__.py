@@ -26,7 +26,7 @@ DOMAIN = "jwr_mcp_bridge"
 CONFIG_FILE = Path("/config/.jwr_mcp_bridge.json")
 MAX_BODY = 30 * 1024 * 1024
 PASS_HEADERS = ("Mcp-Session-Id", "Mcp-Protocol-Version", "Last-Event-ID")
-KEY_HEADER = "X-JWR-Key"
+KEY_HEADER = "X-Api-Key"
 
 
 def _read_config() -> dict | None:

@@ -167,7 +167,7 @@ def _worker(opts: dict, secrets: dict) -> None:
     if not client_key:
         LOG.warning("Kein Header-Schlüssel (client_key) gesetzt – die Connector-URL allein "
                     "gewährt Zugriff. Empfohlen: client_key setzen und in claude.ai als "
-                    "Header X-JWR-Key eintragen.")
+                    "Header x-api-key eintragen.")
     elif len(client_key) < 32:
         LOG.warning("client_key ist kürzer als 32 Zeichen – bitte länger wählen.")
     changed_cfg = write_bridge_config(secrets, opts["port"], client_key)
@@ -206,7 +206,7 @@ def _worker(opts: dict, secrets: dict) -> None:
     LOG.info("Connector-URL für claude.ai (geheim halten):")
     LOG.info("  %s", url)
     if client_key:
-        LOG.info("Zusätzlich nötig: Header X-JWR-Key = Wert der Option client_key "
+        LOG.info("Zusätzlich nötig: Header x-api-key = Wert der Option client_key "
                  "(wird hier nicht angezeigt).")
     LOG.info("=" * 70)
 
