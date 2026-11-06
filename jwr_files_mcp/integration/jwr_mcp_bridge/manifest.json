@@ -4,7 +4,7 @@
   "codeowners": [],
   "config_flow": true,
   "dependencies": ["webhook"],
-  "documentation": "https://github.com/OWNER/ha-jwr-mcp",
+  "documentation": "https://github.com/Jetschin/ha-jwr-mcp",
   "integration_type": "service",
   "iot_class": "local_push",
   "single_config_entry": true,

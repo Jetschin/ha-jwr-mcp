@@ -2,7 +2,7 @@ name: "JWR Dateien MCP"
 description: "MCP-Server mit Dateizugriff auf die JWR-Ablage der MyCloud (ohne Löschen)"
 version: "1.0.0"
 slug: "jwr_files_mcp"
-url: "https://github.com/OWNER/ha-jwr-mcp"
+url: "https://github.com/Jetschin/ha-jwr-mcp"
 arch:
   - aarch64
   - amd64
