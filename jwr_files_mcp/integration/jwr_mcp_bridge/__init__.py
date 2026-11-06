@@ -7,6 +7,7 @@ Add-on wird zusätzlich ein internes Bearer-Token verwendet.
 """
 from __future__ import annotations
 
+import hmac
 import json
 import logging
 from pathlib import Path
@@ -25,6 +26,7 @@ DOMAIN = "jwr_mcp_bridge"
 CONFIG_FILE = Path("/config/.jwr_mcp_bridge.json")
 MAX_BODY = 30 * 1024 * 1024
 PASS_HEADERS = ("Mcp-Session-Id", "Mcp-Protocol-Version", "Last-Event-ID")
+KEY_HEADER = "X-JWR-Key"
 
 
 def _read_config() -> dict | None:
@@ -41,7 +43,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "webhook_id": cfg["webhook_id"],
         "target_url": cfg["target_url"],
         "token": cfg["token"],
+        "client_key": cfg.get("client_key") or "",
     }
+    if not hass.data[DOMAIN]["client_key"]:
+        _LOGGER.warning("JWR MCP Bridge: kein Header-Schlüssel gesetzt – nur die URL schützt den Zugang.")
     webhook.async_register(
         hass, DOMAIN, "JWR Dateien MCP", cfg["webhook_id"], _handle_webhook,
         allowed_methods=["POST", "GET"],
@@ -60,7 +65,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _handle_webhook(hass: HomeAssistant, webhook_id: str, request: web.Request):
     data = hass.data.get(DOMAIN)
     if not data or webhook_id != data["webhook_id"]:
-        return web.Response(status=404)
+        return web.Response(status=200)
+    if data["client_key"]:
+        sent = request.headers.get(KEY_HEADER, "")
+        if not hmac.compare_digest(sent.encode(), data["client_key"].encode()):
+            # Antwort wie bei einem unbekannten Webhook – verrät nichts.
+            _LOGGER.warning("JWR MCP Bridge: Anfrage ohne gültigen %s von %s abgewiesen",
+                            KEY_HEADER, request.remote)
+            return web.Response(status=200)
     if request.method != "POST":
         return web.Response(status=405, headers={"Allow": "POST"})
     if request.content_length and request.content_length > MAX_BODY:

@@ -31,6 +31,16 @@ DST_INTEGRATION = Path("/config/custom_components") / DOMAIN
 BRIDGE_CONFIG = Path("/config/.jwr_mcp_bridge.json")
 
 
+SECRETS_VERSION = 2
+ID_LEN = 100
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+
+def random_key(n: int) -> str:
+    """Zufallskette aus Buchstaben und Ziffern (kryptografisch sicher)."""
+    return "".join(pysecrets.choice(ALPHABET) for _ in range(n))
+
+
 def load_secrets(data_dir: Path, rotate: bool = False) -> dict:
     p = data_dir / "secrets.json"
     marker = data_dir / ".rotated"
@@ -42,12 +52,17 @@ def load_secrets(data_dir: Path, rotate: bool = False) -> dict:
         marker.touch()
     if p.exists() and not rotate:
         try:
-            return json.loads(p.read_text())
+            old = json.loads(p.read_text())
+            if old.get("version") == SECRETS_VERSION:
+                return old
+            LOG.warning("Alte Webhook-Adresse wird durch eine neue mit %d Zeichen ersetzt. "
+                        "Connector in claude.ai mit der neuen URL aktualisieren.", ID_LEN)
         except (OSError, json.JSONDecodeError):
             pass
     s = {
-        "webhook_id": "jwr_" + pysecrets.token_urlsafe(32),
-        "token": pysecrets.token_urlsafe(48),
+        "version": SECRETS_VERSION,
+        "webhook_id": random_key(ID_LEN),
+        "token": random_key(64),
     }
     p.write_text(json.dumps(s))
     os.chmod(p, 0o600)
@@ -107,11 +122,12 @@ def _own_ip() -> str:
         return socket.gethostname()
 
 
-def write_bridge_config(secrets: dict, port: int) -> bool:
+def write_bridge_config(secrets: dict, port: int, client_key: str = "") -> bool:
     cfg = {
         "webhook_id": secrets["webhook_id"],
         "token": secrets["token"],
         "target_url": f"http://{_own_ip()}:{port}/mcp",
+        "client_key": client_key,
     }
     old = None
     if BRIDGE_CONFIG.exists():
@@ -141,13 +157,20 @@ def _notify(title: str, message: str, nid: str) -> None:
 
 
 def _worker(opts: dict, secrets: dict) -> None:
-    url = f"{opts['external_url'] or 'https://<deine-ha-adresse>'}/api/webhook/{secrets['webhook_id']}"
+    url = f"{opts['external_url'] or 'https://<externe-ha-adresse>'}/api/webhook/{secrets['webhook_id']}"
     try:
         changed_code = install_integration()
     except OSError as e:
         LOG.error("Integration konnte nicht installiert werden: %s", e)
         return
-    changed_cfg = write_bridge_config(secrets, opts["port"])
+    client_key = (opts.get("client_key") or "").strip()
+    if not client_key:
+        LOG.warning("Kein Header-Schlüssel (client_key) gesetzt – die Connector-URL allein "
+                    "gewährt Zugriff. Empfohlen: client_key setzen und in claude.ai als "
+                    "Header X-JWR-Key eintragen.")
+    elif len(client_key) < 32:
+        LOG.warning("client_key ist kürzer als 32 Zeichen – bitte länger wählen.")
+    changed_cfg = write_bridge_config(secrets, opts["port"], client_key)
     restart_hint_sent = False
     while True:
         entries, err = _entries()
@@ -180,8 +203,11 @@ def _worker(opts: dict, secrets: dict) -> None:
             restart_hint_sent = True
         time.sleep(30)
     LOG.info("=" * 70)
-    LOG.info("Connector-URL für claude.ai (geheim halten, sie ist der Schlüssel):")
+    LOG.info("Connector-URL für claude.ai (geheim halten):")
     LOG.info("  %s", url)
+    if client_key:
+        LOG.info("Zusätzlich nötig: Header X-JWR-Key = Wert der Option client_key "
+                 "(wird hier nicht angezeigt).")
     LOG.info("=" * 70)
 
 

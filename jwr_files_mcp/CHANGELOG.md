@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+- Zweiter Schlüssel: Header `X-JWR-Key` (Option `client_key`) wird von der Brücke geprüft.
+- Webhook-ID jetzt 100 Zeichen (Buchstaben/Ziffern); bestehende IDs werden einmalig ersetzt.
+- Keine voreingestellte externe Adresse mehr.
+
 ## 1.0.1
 - Brücke: Webhook nur mit POST/GET registrieren (HA unterstützt kein DELETE).
 
