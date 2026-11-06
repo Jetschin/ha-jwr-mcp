@@ -1,0 +1,30 @@
+name: "JWR Dateien MCP"
+description: "MCP-Server mit Dateizugriff auf die JWR-Ablage der MyCloud (ohne Löschen)"
+version: "1.0.0"
+slug: "jwr_files_mcp"
+url: "https://github.com/OWNER/ha-jwr-mcp"
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+homeassistant_api: true
+map:
+  - type: media
+    read_only: false
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+options:
+  root: "/media/WDMycloud/JWR Immobilien GbR"
+  external_url: "https://jetschin.duckdns.org"
+  max_read_mb: 25
+  rotate_secret: false
+  log_level: info
+schema:
+  root: str
+  external_url: url
+  max_read_mb: int(1,100)
+  rotate_secret: bool
+  log_level: list(debug|info|warning|error)

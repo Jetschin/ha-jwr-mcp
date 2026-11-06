@@ -1,0 +1,12 @@
+{
+  "domain": "jwr_mcp_bridge",
+  "name": "JWR MCP Bridge",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["webhook"],
+  "documentation": "https://github.com/OWNER/ha-jwr-mcp",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "single_config_entry": true,
+  "version": "1.0.0"
+}

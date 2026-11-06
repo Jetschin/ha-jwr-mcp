@@ -1,0 +1,15 @@
+configuration:
+  root:
+    name: Freigegebener Ordner
+    description: Nur dieser Ordner (und Unterordner) ist für Claude erreichbar.
+  external_url:
+    name: Externe Home-Assistant-Adresse
+    description: Öffentliche HTTPS-Adresse von Home Assistant ohne Port, z. B. https://jetschin.duckdns.org. Wird nur für die Anzeige der Connector-URL im Log genutzt.
+  max_read_mb:
+    name: Max. Lesegröße (MB)
+    description: Obergrenze für read_bytes pro Aufruf.
+  rotate_secret:
+    name: Neue Connector-URL erzeugen
+    description: Einmalig einschalten und Add-on neu starten, um Webhook-Adresse und Token neu zu erzeugen. Danach wieder ausschalten.
+  log_level:
+    name: Log-Level
