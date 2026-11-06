@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
     webhook.async_register(
         hass, DOMAIN, "JWR Dateien MCP", cfg["webhook_id"], _handle_webhook,
-        allowed_methods=["POST", "GET", "DELETE"],
+        allowed_methods=["POST", "GET"],
     )
     _LOGGER.info("JWR MCP Bridge aktiv (Webhook %s…)", cfg["webhook_id"][:8])
     return True
