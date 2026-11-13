@@ -54,6 +54,9 @@ e, t, _ = call("read_text", path="/Volumes/mycloud/JWR Immobilien GbR/Bestand/00
 check("Mac-Pfad-Alias + pdftotext", not e and "4711" in t)
 e, t, res = call("render_pdf_page", path="Bestand/00_Eingang/Rechnung Müller.pdf", page=2)
 check("render_pdf_page Bild", not e and res["content"][1]["type"] == "image" and "Seite 2 von 2" in t)
+import unicodedata
+e, t, _ = call("file_info", path=unicodedata.normalize("NFD", "Bestand/00_Eingang/Rechnung Müller.pdf"))
+check("Umlaut in anderer Unicode-Form (NFD/NFC) gefunden", not e and '"pages": 2' in t)
 e, t, _ = call("file_info", path="Bestand/00_Eingang/Rechnung Müller.pdf", sha256=True)
 check("file_info pages", not e and '"pages": 2' in t)
 

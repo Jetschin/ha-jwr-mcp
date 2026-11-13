@@ -28,6 +28,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 
@@ -36,7 +37,7 @@ from aiohttp import web
 sys.path.insert(0, os.path.dirname(__file__))
 import bootstrap  # noqa: E402
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 SERVER_NAME = "jwr-dateien"
 SUPPORTED_PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 DONE_DIR = "_erledigt"
@@ -105,11 +106,50 @@ def resolve(rel: str | None, must_exist: bool = True) -> str:
             break
     rel = rel.lstrip("/")
     full = os.path.realpath(os.path.join(ROOT, rel))
+    if not os.path.exists(full):
+        full = os.path.realpath(_match_unicode(rel))
     if os.path.commonpath([full, ROOT]) != ROOT:
         raise ToolError("Zugriff verweigert: Pfad liegt außerhalb des freigegebenen Ordners.")
     if must_exist and not os.path.exists(full):
         raise ToolError(f"Nicht gefunden: {display(full)}")
     return full
+
+
+def _norm(name: str) -> str:
+    """Vergleichsschlüssel für Dateinamen: Unicode-NFC.
+
+    macOS (und per SMB/AFP darüber abgelegte Dateien) speichert Umlaute oft
+    zerlegt (NFD, "u" + U+0308), Clients schicken sie meist zusammengesetzt
+    (NFC, "ü"). Nicht dekodierbare Bytes (surrogateescape) werden zusätzlich
+    als Latin-1 gelesen, damit auch alt kodierte Namen gefunden werden.
+    """
+    try:
+        name.encode("utf-8")
+    except UnicodeEncodeError:
+        name = name.encode("utf-8", "surrogateescape").decode("latin-1")
+    return unicodedata.normalize("NFC", name)
+
+
+def _match_unicode(rel: str) -> str:
+    """Pfad Ordner für Ordner auflösen und dabei die Unicode-Schreibweise
+    ignorieren. Nicht vorhandene Restteile bleiben unverändert (für Ziele)."""
+    cur = ROOT
+    parts = [p for p in rel.split("/") if p not in ("", ".")]
+    for i, part in enumerate(parts):
+        cand = os.path.join(cur, part)
+        if part == ".." or os.path.lexists(cand):
+            cur = cand
+            continue
+        key = _norm(part)
+        try:
+            names = os.listdir(cur)
+        except OSError:
+            names = []
+        hit = next((n for n in names if _norm(n) == key), None)
+        if hit is None:
+            return os.path.join(cur, *parts[i:])
+        cur = os.path.join(cur, hit)
+    return cur
 
 
 def display(full: str) -> str:

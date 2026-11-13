@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2
+- Pfade mit Umlauten werden unabhängig von der Unicode-Schreibweise gefunden (NFD vom Mac vs. NFC vom Client). Vorher meldeten alle Werkzeuge „Nicht gefunden“, obwohl list_dir die Datei zeigte.
+
 ## 1.1.1
 - Header-Name auf `x-api-key` geändert (in claude.ai frei wählbarer Standardname).
 
