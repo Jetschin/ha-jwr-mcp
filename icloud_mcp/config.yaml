@@ -1,6 +1,6 @@
 name: "iCloud MCP"
 description: "Claude-Connector mit Lesezugriff auf dein iCloud Drive"
-version: "1.0.0"
+version: "1.0.1"
 slug: "icloud_mcp"
 url: "https://github.com/Jetschin/ha-jwr-mcp"
 arch:
@@ -26,7 +26,7 @@ options:
   rotate_secret: false
   log_level: info
 schema:
-  apple_id: email
+  apple_id: str?
   external_url: str?
   client_key: password?
   max_read_mb: int(1,200)

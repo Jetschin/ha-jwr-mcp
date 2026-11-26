@@ -25,7 +25,7 @@ from aiohttp import web
 import bootstrap
 from icloud import ICloud, ToolError
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 SERVER_NAME = "icloud-drive"
 SUPPORTED_PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 TEXT_EXT = {"txt", "md", "csv", "tsv", "json", "xml", "html", "htm", "log", "yaml", "yml",
