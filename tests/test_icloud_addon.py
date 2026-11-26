@@ -48,7 +48,7 @@ FakeExc.PyiCloudAccountLockedException=type("PyiCloudAccountLockedException",(Fa
 mod=types.ModuleType("pyicloud"); mod.PyiCloudService=FakeService
 sys.modules["pyicloud"]=mod; sys.modules["pyicloud.exceptions"]=FakeExc
 
-sys.path.insert(0,"os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "icloud_mcp", "app")")
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "icloud_mcp", "app"))
 import server, bootstrap
 bootstrap.notify=lambda *a,**k: print("NOTIFY:",a[0]); bootstrap.dismiss_notification=lambda *a: print("DISMISS",a[0])
 server.bootstrap=bootstrap
