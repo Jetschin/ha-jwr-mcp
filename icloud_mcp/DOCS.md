@@ -1,58 +1,88 @@
 # iCloud MCP
 
-Claude-Connector mit **Lesezugriff auf dein iCloud Drive**. Er läuft rund um die Uhr auf Home Assistant und funktioniert in jedem Claude-Chat, auch in der App auf dem Handy und in geplanten Aufgaben.
+A Claude connector for **your iCloud Drive**, running 24/7 on Home Assistant. Once added in claude.ai it works in every Claude chat, in the mobile apps and in scheduled tasks.
 
-Was Claude damit kann: Ordner auflisten, Dateien suchen, PDFs, Word, Excel und Text lesen, Scans und Fotos (auch HEIC) als Bild ansehen.
-**Nicht möglich:** ändern, hochladen, verschieben, löschen.
+Claude can list folders, search files, read PDFs, Word, Excel and text files, and look at scans and photos (including HEIC).
+With **`allow_write: true`** Claude can also create files and folders and move or rename items.
+**Never possible:** overwriting or deleting.
 
-## Sicherheit
+> Deutsche Kurzanleitung weiter unten.
 
-- **Kein Apple-Passwort gespeichert.** Du gibst es nur auf der Seite „iCloud“ in der HA-Seitenleiste ein. Gespeichert wird nur die von dir per 2FA bestätigte Sitzung, und zwar in `/data/session` im Add-on.
-- Die Anmeldeseite ist nur über Home Assistant (Ingress) erreichbar, also nur für angemeldete HA-Benutzer.
-- Zugang für Claude wie bei *JWR Dateien MCP*: HA-Webhook mit 100-stelliger Zufalls-ID (Integration „iCloud MCP Bridge“), zusätzlich der Header-Schlüssel `x-api-key` und ein internes Token. Es wird kein Port geöffnet.
+## Security
 
-## Voraussetzung bei erweitertem Datenschutz (ADP)
+- **Your Apple password is never stored.** You enter it only on the “iCloud” page in the Home Assistant sidebar. The app keeps just the session you confirmed with 2FA (in `/data/session`).
+- The sign-in page is only reachable through Home Assistant ingress, so only logged-in HA users can see it.
+- Claude reaches the app through a Home Assistant webhook with a 100-character random ID (integration “iCloud MCP Bridge”, installed by the app). On top of that the header `x-api-key` and an internal token are required. No port is opened.
 
-Wenn du für deinen Apple-Account den **erweiterten Datenschutz** nutzt, muss auf dem iPhone unter *Einstellungen → [Dein Name] → iCloud* die Option **„Auf iCloud-Daten im Web zugreifen“** eingeschaltet sein.
+## Requirement for Advanced Data Protection
 
-## Einrichtung
+If your Apple account uses **Advanced Data Protection (ADP)**, turn on **“Access iCloud Data on the Web”** on your iPhone under *Settings → [your name] → iCloud*.
 
-1. In der Konfiguration eintragen:
-   - `apple_id`: deine Apple-ID
-   - `external_url`: z. B. `https://jetschin.duckdns.org`
-   - `client_key`: 100 zufällige Zeichen. Nimm einen **anderen** Schlüssel als bei JWR Dateien.
+## Setup
 
-   Dann das Add-on starten.
-2. Beim ersten Start installiert das Add-on die Integration „iCloud MCP Bridge“ und meldet „Neustart nötig“: **Home Assistant einmal neu starten.**
-3. In der Seitenleiste **iCloud** öffnen, dein Apple-Passwort eingeben und den **6-stelligen Code** von deinem iPhone bestätigen.
-4. Im Add-on-Log steht die **Connector-URL**: `https://<ha-adresse>/api/webhook/<100 Zeichen>`
-5. In claude.ai: *Einstellungen → Connectors → Benutzerdefinierten Connector hinzufügen*
-   - Name: „iCloud“
-   - URL: die Connector-URL aus dem Log
-   - Authentifizierung: „Keine Anmeldung“
-   - Unter „Request-Header“: `x-api-key` mit dem Wert von `client_key`
+1. In the configuration, set:
+   - `apple_id`: your Apple ID
+   - `language`: `en` or `de`, for the sign-in page and notifications
+   - `allow_write`: `true` if Claude may create, move and rename files (default `false`)
+   - `external_url`: your public HA address, e.g. `https://myhome.duckdns.org`
+   - `client_key`: 100 random characters
 
-Teste es mit: *„Was liegt in meinem iCloud Drive?“*
+   Then start the app.
+2. On first start the app installs the integration “iCloud MCP Bridge” and shows a notification asking for a restart: **restart Home Assistant once.**
+3. Open **iCloud** in the sidebar, enter your Apple password and confirm the **6-digit code** from your iPhone.
+4. The app log shows the **connector URL**: `https://<your-ha-address>/api/webhook/<100 characters>`
+5. In claude.ai, go to *Settings → Connectors → Add custom connector* and enter:
+   - Name: “iCloud”
+   - URL: the connector URL from the log
+   - Authentication: none
+   - Under “Request headers”: `x-api-key` with the value of `client_key`
 
-## Wartung
+Try it: *“What's in my iCloud Drive?”*
 
-- **Etwa alle 2 Monate** verlangt Apple eine neue Bestätigung. Das Add-on prüft die Sitzung alle 6 Stunden und schickt dir dann eine **Benachrichtigung in Home Assistant**. Lösung: Seite „iCloud“ öffnen und neu anmelden.
-- Neue Connector-URL erzeugen: Option „Neue Connector-URL erzeugen“ einschalten, Add-on neu starten, Option wieder ausschalten und den Connector in claude.ai neu anlegen.
+## Maintenance
 
-## Werkzeuge
+- **About every two months** Apple asks for a new confirmation. The app checks the session every 6 hours and sends a **Home Assistant notification** when that happens. Open the “iCloud” page and sign in again.
+- **New connector URL:** switch on “Generate new connector URL”, restart the app, switch the option off again and re-create the connector in claude.ai.
 
-| Werkzeug | Zweck |
+## Tools
+
+| Tool | Purpose |
 |---|---|
-| `list_dir`, `search`, `file_info` | Ordner auflisten, nach Namen oder Muster (`*.pdf`) suchen, Metadaten |
-| `read_text` | PDF (Textebene), Word, Excel, Text/CSV lesen |
-| `render_pdf_page`, `read_image` | Scan-Seite oder Foto (auch HEIC) als Bild |
-| `read_bytes` | Rohdaten als Base64, z. B. um eine Datei mit *JWR Dateien* → `write_file` auf die MyCloud zu kopieren |
-| `status` | Anmeldung prüfen |
+| `list_dir`, `search`, `file_info` | List folders, search by name or glob (`*.pdf`), metadata |
+| `read_text` | Read PDF (text layer), Word, Excel, text/CSV |
+| `render_pdf_page`, `read_image` | Look at a scanned page or photo (incl. HEIC) as an image |
+| `read_bytes` | Raw content as Base64, e.g. to copy a file to another file connector |
+| `status` | Check the sign-in |
+| `write_file` | Create a new file (text or Base64; large files in chunks) – only with `allow_write` |
+| `make_dir` | Create folders – only with `allow_write` |
+| `move` | Move and/or rename – only with `allow_write` |
 
-Pfade sind relativ zum iCloud Drive, z. B. `Dokumente/Steuer/Bescheid.pdf`. Groß- und Kleinschreibung ist egal.
+Every write is logged to `/data/audit.log` and the app log.
 
-## Grenzen
+Paths are relative to iCloud Drive, e.g. `Documents/Taxes/notice.pdf`. Case does not matter.
 
-- Pages-, Numbers- und Keynote-Dateien lassen sich nicht lesen. Exportiere sie als PDF, Word oder Excel.
-- Der Connector nutzt die inoffizielle Bibliothek *pyicloud*. Wenn Apple etwas umstellt, ist ein Add-on-Update mit neuer pyicloud-Version nötig.
-- Accounts mit Hardware-Sicherheitsschlüssel (statt Code) werden nicht unterstützt.
+## Limitations
+
+- Pages, Numbers and Keynote files cannot be read. Export them as PDF, Word or Excel.
+- The app uses the unofficial library [pyicloud](https://github.com/timlaing/pyicloud). If Apple changes its web interface, an app update with a newer pyicloud may be needed.
+- Accounts that require a hardware security key instead of a code are not supported.
+- This project is not affiliated with or endorsed by Apple or Anthropic.
+
+---
+
+## Deutsch – Kurzanleitung
+
+1. **Konfiguration ausfüllen und App starten:**
+   - `apple_id`: deine Apple-ID
+   - `language: de`
+   - `allow_write: true`, wenn Claude Dateien anlegen, verschieben und umbenennen darf. Überschreiben und Löschen gehen nie.
+   - `external_url`: deine öffentliche HA-Adresse
+   - `client_key`: 100 zufällige Zeichen
+2. **Home Assistant einmal neu starten**, wenn die Benachrichtigung „Neustart nötig“ erscheint.
+3. **Anmelden:** In der Seitenleiste **iCloud** öffnen, dein Apple-Passwort eingeben und den 6-stelligen Code vom iPhone bestätigen. Das Passwort wird nicht gespeichert.
+4. **Connector-URL kopieren:** Sie steht im Log der App.
+5. **In claude.ai verbinden:** *Einstellungen → Connectors → Benutzerdefinierten Connector hinzufügen*. Dort die URL eintragen, Authentifizierung „Keine Anmeldung“ wählen und unter „Request-Header“ `x-api-key` mit dem Wert von `client_key` eintragen.
+
+Etwa alle zwei Monate will Apple eine neue Bestätigung. Du bekommst dann eine Benachrichtigung in Home Assistant und meldest dich auf der Seite „iCloud“ neu an.
+
+Wenn du den erweiterten Datenschutz (ADP) nutzt, muss auf dem iPhone „Auf iCloud-Daten im Web zugreifen“ eingeschaltet sein.

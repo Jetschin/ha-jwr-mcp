@@ -1,7 +1,7 @@
 {
   "config": {
     "abort": {
-      "already_configured": "Bereits eingerichtet."
+      "already_configured": "Already configured."
     }
   }
 }

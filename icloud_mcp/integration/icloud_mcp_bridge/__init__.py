@@ -1,9 +1,8 @@
-"""iCloud MCP Bridge – leitet einen Home-Assistant-Webhook an das Add-on
-"iCloud MCP" weiter.
+"""iCloud MCP Bridge – forwards a Home Assistant webhook to the app "iCloud MCP".
 
-Wird vom Add-on automatisch installiert und konfiguriert. Die Webhook-ID ist
-ein langer Zufallswert und dient als Zugangsschlüssel; zwischen Integration und
-Add-on wird zusätzlich ein internes Bearer-Token verwendet.
+Installed and configured automatically by the app. The webhook ID is a long random
+value and acts as an access key; between integration and app an additional internal
+bearer token is used.
 """
 from __future__ import annotations
 
@@ -38,7 +37,7 @@ def _read_config() -> dict | None:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     cfg = await hass.async_add_executor_job(_read_config)
     if not cfg or not cfg.get("webhook_id") or not cfg.get("target_url"):
-        raise ConfigEntryNotReady("Konfiguration vom Add-on fehlt – Add-on starten.")
+        raise ConfigEntryNotReady("Configuration from the app is missing – start the app.")
     hass.data[DOMAIN] = {
         "webhook_id": cfg["webhook_id"],
         "target_url": cfg["target_url"],
@@ -46,12 +45,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "client_key": cfg.get("client_key") or "",
     }
     if not hass.data[DOMAIN]["client_key"]:
-        _LOGGER.warning("iCloud MCP Bridge: kein Header-Schlüssel gesetzt – nur die URL schützt den Zugang.")
+        _LOGGER.warning("iCloud MCP Bridge: no header key set – only the URL protects access.")
     webhook.async_register(
         hass, DOMAIN, "iCloud MCP", cfg["webhook_id"], _handle_webhook,
         allowed_methods=["POST", "GET"],
     )
-    _LOGGER.info("iCloud MCP Bridge aktiv (Webhook %s…)", cfg["webhook_id"][:8])
+    _LOGGER.info("iCloud MCP Bridge active (webhook %s…)", cfg["webhook_id"][:8])
     return True
 
 
@@ -69,8 +68,8 @@ async def _handle_webhook(hass: HomeAssistant, webhook_id: str, request: web.Req
     if data["client_key"]:
         sent = request.headers.get(KEY_HEADER, "")
         if not hmac.compare_digest(sent.encode(), data["client_key"].encode()):
-            # Antwort wie bei einem unbekannten Webhook – verrät nichts.
-            _LOGGER.warning("iCloud MCP Bridge: Anfrage ohne gültigen %s von %s abgewiesen",
+            # Answer like an unknown webhook – reveals nothing.
+            _LOGGER.warning("iCloud MCP Bridge: request without valid %s from %s rejected",
                             KEY_HEADER, request.remote)
             return web.Response(status=200)
     if request.method != "POST":
@@ -101,5 +100,5 @@ async def _handle_webhook(hass: HomeAssistant, webhook_id: str, request: web.Req
             return web.Response(status=resp.status, body=payload,
                                 content_type="application/json", headers=out_headers)
     except (aiohttp.ClientError, TimeoutError) as err:
-        _LOGGER.warning("iCloud MCP Bridge: Add-on nicht erreichbar: %s", err)
-        return web.Response(status=502, text="iCloud MCP nicht erreichbar")
+        _LOGGER.warning("iCloud MCP Bridge: app not reachable: %s", err)
+        return web.Response(status=502, text="iCloud MCP not reachable")

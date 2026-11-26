@@ -1,12 +1,12 @@
-"""Einrichtung im Hintergrund:
+"""Background setup:
 
-1. Geheimnisse (Webhook-ID, internes Token) in /data/secrets.json anlegen.
-2. Die kleine HA-Integration ``icloud_mcp_bridge`` nach /config/custom_components
-   kopieren. Sie registriert einen HA-Webhook und leitet MCP-Anfragen an dieses
-   Add-on weiter. So ist der Server über die vorhandene HTTPS-Adresse von Home
-   Assistant erreichbar (DuckDNS/Nabu Casa), ohne zusätzliche Portfreigabe.
-3. /config/.icloud_mcp_bridge.json schreiben (Ziel-URL + Token für die Integration).
-4. Den Config-Entry der Integration anlegen bzw. neu laden.
+1. Create secrets (webhook ID, internal token) in /data/secrets.json.
+2. Copy the small HA integration ``icloud_mcp_bridge`` to /config/custom_components.
+   It registers an HA webhook and forwards MCP requests to this app, so the server
+   is reachable through Home Assistant's existing HTTPS address (DuckDNS, Nabu Casa,
+   reverse proxy) without opening an extra port.
+3. Write /config/.icloud_mcp_bridge.json (target URL + token for the integration).
+4. Create or reload the integration's config entry.
 """
 from __future__ import annotations
 
@@ -24,6 +24,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from i18n import t
+
 LOG = logging.getLogger("icloud_mcp.bootstrap")
 DOMAIN = "icloud_mcp_bridge"
 SRC_INTEGRATION = Path(__file__).resolve().parent.parent / "integration" / DOMAIN
@@ -37,7 +39,7 @@ ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 
 def random_key(n: int) -> str:
-    """Zufallskette aus Buchstaben und Ziffern (kryptografisch sicher)."""
+    """Random string of letters and digits (cryptographically secure)."""
     return "".join(pysecrets.choice(ALPHABET) for _ in range(n))
 
 
@@ -46,7 +48,7 @@ def load_secrets(data_dir: Path, rotate: bool = False) -> dict:
     marker = data_dir / ".rotated"
     if not rotate and marker.exists():
         marker.unlink()
-    if rotate and marker.exists():  # nur einmal pro Einschalten rotieren
+    if rotate and marker.exists():  # rotate only once per switch-on
         rotate = False
     elif rotate:
         marker.touch()
@@ -55,8 +57,8 @@ def load_secrets(data_dir: Path, rotate: bool = False) -> dict:
             old = json.loads(p.read_text())
             if old.get("version") == SECRETS_VERSION:
                 return old
-            LOG.warning("Alte Webhook-Adresse wird durch eine neue mit %d Zeichen ersetzt. "
-                        "Connector in claude.ai mit der neuen URL aktualisieren.", ID_LEN)
+            LOG.warning("Old webhook address replaced by a new one with %d characters. "
+                        "Update the connector in claude.ai with the new URL.", ID_LEN)
         except (OSError, json.JSONDecodeError):
             pass
     s = {
@@ -67,16 +69,16 @@ def load_secrets(data_dir: Path, rotate: bool = False) -> dict:
     p.write_text(json.dumps(s))
     os.chmod(p, 0o600)
     if rotate:
-        LOG.warning("Neue Webhook-Adresse und neues Token erzeugt (rotate_secret). "
-                    "Connector in claude.ai mit der neuen URL neu anlegen und "
-                    "die Option rotate_secret wieder ausschalten.")
+        LOG.warning("New webhook address and token generated (rotate_secret). "
+                    "Re-create the connector in claude.ai with the new URL and "
+                    "switch rotate_secret off again.")
     return s
 
 
 def _core_api(method: str, path: str, data: dict | None = None):
     token = os.environ.get("SUPERVISOR_TOKEN")
     if not token:
-        return None, "kein SUPERVISOR_TOKEN"
+        return None, "no SUPERVISOR_TOKEN"
     req = urllib.request.Request(
         f"http://supervisor/core/api{path}", method=method,
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
@@ -101,7 +103,7 @@ def _dir_hash(p: Path) -> str:
 
 
 def install_integration() -> bool:
-    """Kopiert die Integration. True, wenn sich etwas geändert hat."""
+    """Copy the integration. True if anything changed."""
     if DST_INTEGRATION.exists() and _dir_hash(DST_INTEGRATION) == _dir_hash(SRC_INTEGRATION):
         return False
     DST_INTEGRATION.parent.mkdir(parents=True, exist_ok=True)
@@ -157,57 +159,51 @@ def _notify(title: str, message: str, nid: str) -> None:
 
 
 def _worker(opts: dict, secrets: dict) -> None:
-    url = f"{opts['external_url'] or 'https://<externe-ha-adresse>'}/api/webhook/{secrets['webhook_id']}"
+    url = f"{opts['external_url'] or 'https://<external-ha-address>'}/api/webhook/{secrets['webhook_id']}"
     try:
         changed_code = install_integration()
     except OSError as e:
-        LOG.error("Integration konnte nicht installiert werden: %s", e)
+        LOG.error("Could not install the integration: %s", e)
         return
     client_key = (opts.get("client_key") or "").strip()
     if not client_key:
-        LOG.warning("Kein Header-Schlüssel (client_key) gesetzt – die Connector-URL allein "
-                    "gewährt Zugriff. Empfohlen: client_key setzen und in claude.ai als "
-                    "Header x-api-key eintragen.")
+        LOG.warning("No header key (client_key) set – the connector URL alone grants access. "
+                    "Recommended: set client_key and add it in claude.ai as header x-api-key.")
     elif len(client_key) < 32:
-        LOG.warning("client_key ist kürzer als 32 Zeichen – bitte länger wählen.")
+        LOG.warning("client_key is shorter than 32 characters – please choose a longer one.")
     changed_cfg = write_bridge_config(secrets, opts["port"], client_key)
     restart_hint_sent = False
     while True:
         entries, err = _entries()
         if entries is None:
-            LOG.info("Home Assistant noch nicht erreichbar (%s) – neuer Versuch in 30 s", err)
+            LOG.info("Home Assistant not reachable yet (%s) – retrying in 30 s", err)
             time.sleep(30)
             continue
         if entries:
             if changed_code:
-                LOG.warning("Integration aktualisiert – Home Assistant bitte neu starten.")
-                _notify("iCloud MCP", "Die Brücken-Integration wurde aktualisiert. "
-                        "Bitte Home Assistant neu starten (Einstellungen → System → Neu starten).",
-                        "icloud_mcp_restart")
+                LOG.warning("Integration updated – please restart Home Assistant.")
+                _notify("iCloud MCP", t("n_updated_msg"), "icloud_mcp_restart")
             elif changed_cfg:
                 eid = entries[0]["entry_id"]
                 _core_api("POST", f"/config/config_entries/entry/{eid}/reload")
-                LOG.info("Brücke neu geladen.")
+                LOG.info("Bridge reloaded.")
             break
         res, err = _core_api("POST", "/config/config_entries/flow", {"handler": DOMAIN})
         if isinstance(res, dict) and res.get("type") in ("create_entry", "abort"):
-            LOG.info("Brücke in Home Assistant eingerichtet.")
+            LOG.info("Bridge set up in Home Assistant.")
             break
         if not restart_hint_sent:
-            LOG.warning("Integration noch nicht geladen (%s). Home Assistant einmal neu "
-                        "starten; die Einrichtung läuft danach automatisch weiter.", err)
-            _notify("iCloud MCP: Neustart nötig",
-                    "Das Add-on hat die Integration „iCloud MCP Bridge“ installiert. Bitte Home "
-                    "Assistant einmal neu starten (Einstellungen → System → Neu starten). "
-                    "Danach richtet sich die Brücke automatisch ein.", "icloud_mcp_restart")
+            LOG.warning("Integration not loaded yet (%s). Restart Home Assistant once; "
+                        "setup continues automatically afterwards.", err)
+            _notify(t("n_restart_title"), t("n_restart_msg"), "icloud_mcp_restart")
             restart_hint_sent = True
         time.sleep(30)
     LOG.info("=" * 70)
-    LOG.info("Connector-URL für claude.ai (geheim halten):")
+    LOG.info("Connector URL for claude.ai (keep it secret):")
     LOG.info("  %s", url)
     if client_key:
-        LOG.info("Zusätzlich nötig: Header x-api-key = Wert der Option client_key "
-                 "(wird hier nicht angezeigt).")
+        LOG.info("Also required: header x-api-key = value of the option client_key "
+                 "(not shown here).")
     LOG.info("=" * 70)
 
 
@@ -216,7 +212,7 @@ def start_background(opts: dict, secrets: dict) -> None:
 
 
 def notify(title: str, message: str, nid: str) -> None:
-    """Dauerhafte Benachrichtigung in Home Assistant."""
+    """Persistent notification in Home Assistant."""
     threading.Thread(target=_notify, args=(title, message, nid), daemon=True).start()
 
 

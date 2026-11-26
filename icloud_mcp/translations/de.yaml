@@ -2,12 +2,18 @@ configuration:
   apple_id:
     name: Apple-ID
     description: E-Mail-Adresse deines Apple-Accounts. Das Passwort gibst du nur auf der Seite „iCloud“ in der Seitenleiste ein; es wird nicht gespeichert.
+  language:
+    name: Sprache
+    description: Sprache der Anmeldeseite und der Benachrichtigungen (en/de).
+  allow_write:
+    name: Schreiben erlauben
+    description: Claude darf Dateien und Ordner anlegen sowie verschieben/umbenennen. Überschreiben und Löschen bleiben ausgeschlossen.
   external_url:
     name: Externe Home-Assistant-Adresse
-    description: Öffentliche HTTPS-Adresse von Home Assistant, z. B. https://jetschin.duckdns.org. Nur für die Anzeige der Connector-URL im Log.
+    description: Öffentliche HTTPS-Adresse von Home Assistant, z. B. https://meinhaus.duckdns.org. Nur für die Anzeige der Connector-URL im Log.
   client_key:
     name: Header-Schlüssel (x-api-key)
-    description: Geheimer zweiter Schlüssel. In claude.ai beim Connector als Request-Header „x-api-key“ mit genau diesem Wert eintragen. Mindestens 32, empfohlen 100 Zeichen. Nicht denselben wie bei JWR Dateien verwenden.
+    description: Geheimer zweiter Schlüssel. In claude.ai beim Connector als Request-Header „x-api-key“ mit genau diesem Wert eintragen. Mindestens 32, empfohlen 100 Zeichen.
   max_read_mb:
     name: Max. Dateigröße (MB)
     description: Größere Dateien werden nicht geladen.

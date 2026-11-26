@@ -12,7 +12,7 @@ ARG BUILD_VERSION
 ARG BUILD_ARCH
 LABEL \
     io.hass.name="iCloud MCP" \
-    io.hass.description="Claude-Connector für iCloud Drive (nur Lesen)" \
+    io.hass.description="Claude connector for iCloud Drive" \
     io.hass.version="${BUILD_VERSION}" \
     io.hass.type="addon" \
     io.hass.arch="${BUILD_ARCH}"

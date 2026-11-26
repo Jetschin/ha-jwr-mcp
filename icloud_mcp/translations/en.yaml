@@ -1,0 +1,24 @@
+configuration:
+  apple_id:
+    name: Apple ID
+    description: E-mail address of your Apple account. Enter the password only on the “iCloud” page in the sidebar; it is never stored.
+  language:
+    name: Language
+    description: Language of the sign-in page and notifications (en/de).
+  allow_write:
+    name: Allow writing
+    description: Lets Claude create files and folders and move/rename items. Overwriting and deleting stay impossible.
+  external_url:
+    name: External Home Assistant URL
+    description: Public HTTPS address of Home Assistant, e.g. https://myhome.duckdns.org. Only used to print the connector URL in the log.
+  client_key:
+    name: Header key (x-api-key)
+    description: Secret second key. Add it in claude.ai to the connector as request header “x-api-key” with exactly this value. At least 32, recommended 100 characters.
+  max_read_mb:
+    name: Max. file size (MB)
+    description: Larger files are not loaded.
+  rotate_secret:
+    name: Generate new connector URL
+    description: Switch on once and restart the app to generate a new webhook address and token. Switch off again afterwards.
+  log_level:
+    name: Log level

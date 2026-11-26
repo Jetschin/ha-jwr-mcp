@@ -1,6 +1,6 @@
 name: "iCloud MCP"
-description: "Claude-Connector mit Lesezugriff auf dein iCloud Drive"
-version: "1.0.1"
+description: "Claude connector for your iCloud Drive (read, optionally write)"
+version: "1.2.0"
 slug: "icloud_mcp"
 url: "https://github.com/Jetschin/ha-jwr-mcp"
 arch:
@@ -20,6 +20,8 @@ map:
     path: /config
 options:
   apple_id: ""
+  language: en
+  allow_write: false
   external_url: ""
   client_key: ""
   max_read_mb: 50
@@ -27,6 +29,8 @@ options:
   log_level: info
 schema:
   apple_id: str?
+  language: list(en|de)
+  allow_write: bool
   external_url: str?
   client_key: password?
   max_read_mb: int(1,200)

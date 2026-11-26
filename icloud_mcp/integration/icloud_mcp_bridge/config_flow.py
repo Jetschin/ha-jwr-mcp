@@ -1,4 +1,4 @@
-"""Config-Flow ohne Formular – wird vom Add-on automatisch ausgelöst."""
+"""Config flow without a form – triggered automatically by the app."""
 from __future__ import annotations
 
 from typing import Any
