@@ -2,4 +2,5 @@
 
 Add-on-Repository für Home Assistant OS.
 
-- **HA MCP for file and data management**
+- **JWR Dateien MCP** – Claude-Connector mit Dateizugriff auf die JWR-Ablage der MyCloud (ohne Löschen)
+- **iCloud MCP** – Claude-Connector mit Lesezugriff auf das iCloud Drive (Anmeldung mit 2FA in der HA-Seitenleiste)

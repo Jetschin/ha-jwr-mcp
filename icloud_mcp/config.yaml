@@ -1,0 +1,34 @@
+name: "iCloud MCP"
+description: "Claude-Connector mit Lesezugriff auf dein iCloud Drive"
+version: "1.0.0"
+slug: "icloud_mcp"
+url: "https://github.com/Jetschin/ha-jwr-mcp"
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+homeassistant_api: true
+ingress: true
+ingress_port: 8098
+panel_icon: mdi:apple-icloud
+panel_title: iCloud
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+options:
+  apple_id: ""
+  external_url: ""
+  client_key: ""
+  max_read_mb: 50
+  rotate_secret: false
+  log_level: info
+schema:
+  apple_id: email
+  external_url: str?
+  client_key: password?
+  max_read_mb: int(1,200)
+  rotate_secret: bool
+  log_level: list(debug|info|warning|error)
