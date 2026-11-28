@@ -1,0 +1,21 @@
+configuration:
+  bridge_host:
+    name: Adresse der Hue Bridge
+    description: IP-Adresse der Bridge, z. B. 192.168.178.50. Leer lassen = automatisch suchen.
+  language:
+    name: Sprache
+    description: Sprache der Benachrichtigungen in Home Assistant (en/de).
+  allow_delete:
+    name: Löschen erlauben
+    description: Claude darf Geräte, Räume, Zonen und Szenen aus der Bridge entfernen – immer erst nach deiner Bestätigung im Chat.
+  external_url:
+    name: Externe Home-Assistant-Adresse
+    description: Öffentliche HTTPS-Adresse von Home Assistant, z. B. https://meinhaus.duckdns.org. Nur für die Anzeige der Connector-URL im Log.
+  client_key:
+    name: Header-Schlüssel (x-api-key)
+    description: Geheimer zweiter Schlüssel. In claude.ai beim Connector als Request-Header „x-api-key“ mit genau diesem Wert eintragen. Mindestens 32, empfohlen 100 Zeichen.
+  rotate_secret:
+    name: Neue Connector-URL erzeugen
+    description: Einmalig einschalten und App neu starten, um Webhook-Adresse und Token neu zu erzeugen. Danach wieder ausschalten.
+  log_level:
+    name: Log-Level

@@ -1,0 +1,32 @@
+name: "Hue MCP"
+description: "Claude connector for the Philips Hue Bridge (names, rooms, zones, scenes)"
+version: "1.0.0"
+slug: "hue_mcp"
+url: "https://github.com/Jetschin/ha-jwr-mcp"
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+homeassistant_api: true
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+options:
+  bridge_host: ""
+  language: de
+  allow_delete: true
+  external_url: ""
+  client_key: ""
+  rotate_secret: false
+  log_level: info
+schema:
+  bridge_host: str?
+  language: list(en|de)
+  allow_delete: bool
+  external_url: str?
+  client_key: password?
+  rotate_secret: bool
+  log_level: list(debug|info|warning|error)
